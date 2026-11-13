@@ -546,14 +546,14 @@ def recon_neonatal_cortex(config, section, config_vars,
 					print("Reconstructing boundary of right cerebral hemisphere segmentation")
 				neoctx.recon_cortical_surface(name=right_cerebrum_mesh,
 											  regions=regions_mask, hemisphere=neoctx.Hemisphere.Right,
-											  corpus_callosum_mask=corpus_callosum_mask, temp=temp_dir, use_fast_collision=use_fast_collision)
+											  corpus_callosum_mask=corpus_callosum_mask, temp=temp_dir)
 			if force or not os.path.isfile(left_cerebrum_mesh):
 				corpus_callosum_mask = optional_corpus_callosum_mask(config, section, config_vars, stack, verbose)
 				if verbose > 0:
 					print("Reconstructing boundary of left cerebral hemisphere segmentation")
 				neoctx.recon_cortical_surface(name=left_cerebrum_mesh,
 											  regions=regions_mask, hemisphere=neoctx.Hemisphere.Left,
-											  corpus_callosum_mask=corpus_callosum_mask, temp=temp_dir, use_fast_collision=use_fast_collision)
+											  corpus_callosum_mask=corpus_callosum_mask, temp=temp_dir)
 
 			# join cortical surfaces of right and left hemispheres
 			if verbose > 0:
