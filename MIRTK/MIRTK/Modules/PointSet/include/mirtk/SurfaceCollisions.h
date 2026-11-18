@@ -220,6 +220,9 @@ private:
   mirtkPublicAttributeMacro(double, MaxAngle);
 
   /// Whether to perform intersection tests between adjacent triangles
+  mirtkPublicAttributeMacro(bool, AdjacentCollisionTest);
+
+  /// Whether to perform intersection tests between adjacent triangles
   mirtkPublicAttributeMacro(bool, AdjacentIntersectionTest);
 
   /// Whether to perform intersection tests between non-adjacent triangles
@@ -296,8 +299,10 @@ public:
   /// Get type of cell collision
   CollisionType GetCollisionType(int) const;
 
+#ifdef VTK_USE_64BIT_IDS
   /// Get type of cell collision
   CollisionType GetCollisionType(vtkIdType) const;
+#endif // VTK_USE_64BIT_IDS
 
   /// Set of intersections of other faces with the specified cell
   /// \note Use only when intersection tests enabled.
