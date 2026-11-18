@@ -25,7 +25,6 @@
 #include "mirtk/Math.h"
 #include "mirtk/Memory.h"
 #include "mirtk/Path.h"
-#include "mirtk/Matrix3x3.h"
 #include "mirtk/VoxelCast.h"
 #include "mirtk/Vector3D.h"
 #include "mirtk/Point.h"
@@ -1211,23 +1210,12 @@ void HashImage<VoxelType>::ImageToVTK(vtkStructuredPoints *vtk) const
   vtk->SetOrigin  (x, y, z);
   vtk->SetDimensions(_attr._x,  _attr._y,  _attr._z);
   vtk->SetSpacing   (_attr._dx, _attr._dy, _attr._dz);
-#if VTK_MAJOR_VERSION >= 6
   vtk->AllocateScalars(this->ImageToVTKScalarType(), 1);
-#else
-  vtk->SetScalarType(this->ImageToVTKScalarType());
-  vtk->AllocateScalars();
-#endif
   const int    nvox = _attr._x * _attr._y * _attr._z;
   VoxelType     *ptr2 = reinterpret_cast<VoxelType *>(vtk->GetScalarPointer());
   for (int i = 0; i < nvox; ++i) {
     for (int l = 0; l < _attr._t; ++l, ++ptr2) *ptr2 = Get(l * nvox);
   }
-}
-
-template <>
-inline void HashImage<Matrix3x3>::ImageToVTK(vtkStructuredPoints *) const
-{
-  Throw(ERR_NotImplemented, __FUNCTION__, "Not implemented");
 }
 
 // -----------------------------------------------------------------------------

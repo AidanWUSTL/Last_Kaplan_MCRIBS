@@ -31,11 +31,14 @@ TRAVIS=`norm_option_value "$TRAVIS" OFF`
 TESTING=`norm_option_value "$TESTING" OFF`
 WITH_ARPACK=`norm_option_value "$WITH_ARPACK" OFF`
 WITH_UMFPACK=`norm_option_value "$WITH_UMFPACK" OFF`
+WITH_ITK=`norm_option_value "$WITH_ITK" OFF`
 WITH_VTK=`norm_option_value "$WITH_VTK" OFF`
 WITH_TBB=`norm_option_value "$WITH_TBB" ON`
 WITH_FLANN=`norm_option_value "$WITH_FLANN" ON`
 WITH_FLTK=`norm_option_value "$WITH_FLTK" OFF`
 WITH_CCACHE=`norm_option_value "$WITH_CCACHE" OFF`
+
+cmake_args=
 
 if [ $TRAVIS = ON ]; then
   os="$TRAVIS_OS_NAME"
@@ -50,21 +53,34 @@ else
   cpu_cores=1
 fi
 
-modules=(Common Numerics Image IO Transformation Registration DrawEM)
+modules=(Common Numerics Image IO Transformation Registration)
 if [ $WITH_VTK = ON ]; then
   modules=(${modules[@]} PointSet Deformable Mapping)
   if [ $WITH_FLTK = ON ]; then
     modules=(${modules[@]} Viewer)
   fi
+  if [ $os = osx ] || [ $os = Darwin ]; then
+    if [ -d "/usr/local/opt/vtk@$MACOS_VTK_VERSION" ]; then
+      cmake_args+=(-D DEPENDS_VTK_DIR="/usr/local/opt/vtk@$MACOS_VTK_VERSION")
+    fi
+  fi
+fi
+if [ $WITH_ITK = ON ]; then
+  modules=(${modules[@]} DrawEM)
 fi
 
-cmake_args=
 for module in ${modules[@]}; do
   cmake_args=(${cmake_args[@]} -D MODULE_${module}=ON)
 done
 
+if [ -x /opt/cmake-3.12.4/bin/cmake ]; then
+  cmake_cmd="/opt/cmake-3.12.4/bin/cmake"
+else
+  cmake_cmd="cmake"
+fi
+
 mkdir Build && cd Build
-run cmake \
+run "$cmake_cmd" \
       -D CMAKE_INSTALL_PREFIX=/usr \
       -D CMAKE_BUILD_TYPE=Release \
       -D BUILD_SHARED_LIBS=ON \
@@ -81,6 +97,7 @@ run cmake \
       -D WITH_PROFILING=ON \
       -D WITH_TBB=$WITH_TBB \
       -D WITH_UMFPACK=$WITH_UMFPACK \
+      -D WITH_ITK=$WITH_ITK \
       -D WITH_VTK=$WITH_VTK \
       -D WITH_ZLIB=ON \
       ${cmake_args[@]} \

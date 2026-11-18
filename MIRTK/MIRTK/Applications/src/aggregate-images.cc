@@ -369,7 +369,7 @@ double GiniCoefficient(Array<T> &samples)
   if (shift <= static_cast<T>(0)) {
     if (numeric_limits<T>::is_integer) shift -= static_cast<T>(1);
     else                               shift -= static_cast<T>(1e-6);
-    Transform(samples, bind2nd(minus<T>(), shift));
+    Transform(samples, bind(minus<T>(), std::placeholders::_1, shift));
   }
   Sort(samples);
   for (int i = 0; i < n; ++i) {
@@ -408,7 +408,7 @@ double EntropyIndex(Array<T> &samples, int alpha = 1)
   if (shift <= static_cast<T>(0)) {
     if (numeric_limits<T>::is_integer) shift -= static_cast<T>(1);
     else                               shift -= static_cast<T>(1e-6);
-    Transform(samples, bind2nd(minus<T>(), shift));
+    Transform(samples, bind(minus<T>(), std::placeholders::_1, shift));
   }
   // Compute mean value
   double mean = 0.;
@@ -740,7 +740,7 @@ int main(int argc, char **argv)
       eval._Function = [min_value, max_value, bins, parzen](const InputArray &values) -> OutputType {
         Histogram1D<int> hist(bins);
         hist.Min(static_cast<double>(min_value));
-        hist.Max(static_cast<double>(min_value));
+        hist.Max(static_cast<double>(max_value));
         for (auto value : values) {
           hist.AddSample(static_cast<double>(value));
         }
