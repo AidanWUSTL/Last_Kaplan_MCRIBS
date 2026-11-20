@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+
+import numpy
+import sys
+import os
+import nibabel
+import getopt
+import scipy.ndimage
+import freesurfer
+import scipy.ndimage
+
+import Utils
+
+#@profile
+opts, args = getopt.getopt(sys.argv[1:], "vh", [])
+
+if len(args) != 1:
+    print(sys.argv[0] + " <subject id>")
+    exit()
+
+verbose = False
+for o, a in opts:
+    if o == '-v':
+        verbose = True
+
+SubjId = args[0]
+
+ASEGPresurfMGZ = nibabel.load(os.path.join('freesurfer', SubjId, 'mri', 'aseg.presurf.mgz'))
+ASEGPresurfIMG = numpy.int16(ASEGPresurfMGZ.dataobj)
+
+RibbonMGZ = nibabel.load(os.path.join('freesurfer', SubjId, 'mri', 'ribbon.mgz'))
+RibbonIMG = numpy.uint8(RibbonMGZ.dataobj)
+
+ASEGIMG = numpy.array(ASEGPresurfIMG)
+
+# set cortex from the ribbon
+ASEGIMG[RibbonIMG == 3] = 3
+ASEGIMG[RibbonIMG == 42] = 42
+
+# remove cortex and white matter labels outside the ribbon
+ASEGIMG[numpy.logical_and(Utils.ismember(ASEGPresurfIMG, [3, 42, 2, 41]), RibbonIMG == 0)] = 0
+
+# CSF and zero values closer to the cortex in the ribbon WM should be reset to WM
+DFromCortex = scipy.ndimage.distance_transform_edt(numpy.logical_not(Utils.ismember(ASEGIMG, [3, 42])))
+DFromSubcort = scipy.ndimage.distance_transform_edt(numpy.logical_not(Utils.ismember(ASEGIMG, [9, 48, 192, 17, 53])))
+
+RibbonWM = numpy.logical_or(RibbonIMG == 2, RibbonIMG == 41)
+
+WMToSet = numpy.logical_and(numpy.logical_and(RibbonWM, DFromCortex < DFromSubcort), numpy.logical_not(Utils.ismember(ASEGIMG, [3, 42, 9, 48, 192, 17, 53, 11, 12, 13, 18, 50, 51, 52, 54)))
+
+if numpy.any(WMToSet):
+    ASEGIMG[WMToSet] = RibbonIMG[WMToSet]
+
+OrigMask = Utils.ismember(ASEGPresurfIMG, [4, 5, 10, 11, 12, 13, 14, 17, 18, 26, 28, 30, 31, 43, 44, 49, 50, 51, 52, 53, 54, 58, 60, 62, 63, 251, 252, 253, 254, 77, 192])
+ASEGIMG[OrigMask] = ASEGPresurfIMG[OrigMask]
+
+ASEGMGZ = nibabel.MGHImage(ASEGIMG, ASEGPresurfMGZ.affine, ASEGPresurfMGZ.header)
+nibabel.save(ASEGMGZ, os.path.join('freesurfer', SubjId, 'mri', 'aseg.mgz'))

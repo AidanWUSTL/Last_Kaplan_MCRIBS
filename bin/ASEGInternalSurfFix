@@ -7,7 +7,7 @@ import os
 import freesurfer
 import nibabel
 
-import scipy.ndimage.morphology 
+import scipy.ndimage
 
 if len(sys.argv) < 4:
     print("Incorrect number of arguments")
@@ -18,7 +18,7 @@ if len(sys.argv) < 4:
 inFileName = sys.argv[1]
 
 if not os.path.isfile(inFileName):
-    print("Input file not found")
+    print("Input file not found: " + inFileName)
     quit()
 
 Reader = vtk.vtkXMLPolyDataReader()
@@ -42,39 +42,39 @@ if Data.GetNumberOfPolys() > 0:
 
 ASEGMGZ = nibabel.load(sys.argv[2])
 
-I = numpy.linalg.inv(ASEGMGZ.get_affine())
+I = numpy.linalg.inv(ASEGMGZ.affine)
 
 TV = numpy.dot(I[:3, :3], S['vertices']) + numpy.atleast_2d(I[:3, 3]).T
 
-#NewIMG = numpy.array(ASEGMGZ.get_data())
+
 
 #$ThalamusLabel = 10
 
-#NewIMG[(numpy.int64(numpy.floor(TV[0])), numpy.int64(numpy.floor(TV[1])), numpy.int64(numpy.floor(TV[2])))] = ThalamusLabel 
-#NewIMG[(numpy.int64( numpy.ceil(TV[0])), numpy.int64(numpy.floor(TV[1])), numpy.int64(numpy.floor(TV[2])))] = ThalamusLabel  
-#NewIMG[(numpy.int64(numpy.floor(TV[0])),  numpy.int64(numpy.ceil(TV[1])), numpy.int64(numpy.floor(TV[2])))] = ThalamusLabel 
-#NewIMG[(numpy.int64( numpy.ceil(TV[0])),  numpy.int64(numpy.ceil(TV[1])), numpy.int64(numpy.floor(TV[2])))] = ThalamusLabel 
-#NewIMG[(numpy.int64(numpy.floor(TV[0])), numpy.int64(numpy.floor(TV[1])),  numpy.int64(numpy.ceil(TV[2])))] = ThalamusLabel 
-#NewIMG[(numpy.int64( numpy.ceil(TV[0])), numpy.int64(numpy.floor(TV[1])),  numpy.int64(numpy.ceil(TV[2])))] = ThalamusLabel 
-#NewIMG[(numpy.int64(numpy.floor(TV[0])),  numpy.int64(numpy.ceil(TV[1])),  numpy.int64(numpy.ceil(TV[2])))] = ThalamusLabel 
-#NewIMG[(numpy.int64( numpy.ceil(TV[0])),  numpy.int64(numpy.ceil(TV[1])),  numpy.int64(numpy.ceil(TV[2])))] = ThalamusLabel 
+#NewIMG[(numpy.int64(numpy.floor(TV[0])), numpy.int64(numpy.floor(TV[1])), numpy.int64(numpy.floor(TV[2])))] = ThalamusLabel
+#NewIMG[(numpy.int64( numpy.ceil(TV[0])), numpy.int64(numpy.floor(TV[1])), numpy.int64(numpy.floor(TV[2])))] = ThalamusLabel
+#NewIMG[(numpy.int64(numpy.floor(TV[0])),  numpy.int64(numpy.ceil(TV[1])), numpy.int64(numpy.floor(TV[2])))] = ThalamusLabel
+#NewIMG[(numpy.int64( numpy.ceil(TV[0])),  numpy.int64(numpy.ceil(TV[1])), numpy.int64(numpy.floor(TV[2])))] = ThalamusLabel
+#NewIMG[(numpy.int64(numpy.floor(TV[0])), numpy.int64(numpy.floor(TV[1])),  numpy.int64(numpy.ceil(TV[2])))] = ThalamusLabel
+#NewIMG[(numpy.int64( numpy.ceil(TV[0])), numpy.int64(numpy.floor(TV[1])),  numpy.int64(numpy.ceil(TV[2])))] = ThalamusLabel
+#NewIMG[(numpy.int64(numpy.floor(TV[0])),  numpy.int64(numpy.ceil(TV[1])),  numpy.int64(numpy.ceil(TV[2])))] = ThalamusLabel
+#NewIMG[(numpy.int64( numpy.ceil(TV[0])),  numpy.int64(numpy.ceil(TV[1])),  numpy.int64(numpy.ceil(TV[2])))] = ThalamusLabel
 
-NewIMG = numpy.array(ASEGMGZ.get_data())
-NewMask = numpy.zeros(ASEGMGZ.shape, dtype = numpy.bool)
+NewIMG = numpy.int32(numpy.array(ASEGMGZ.get_fdata()))
+NewMask = numpy.zeros(ASEGMGZ.shape, dtype = numpy.bool_)
 
 ThalamusLabel = 10
 
-NewMask[(numpy.int64(numpy.floor(TV[0])), numpy.int64(numpy.floor(TV[1])), numpy.int64(numpy.floor(TV[2])))] = True 
-NewMask[(numpy.int64( numpy.ceil(TV[0])), numpy.int64(numpy.floor(TV[1])), numpy.int64(numpy.floor(TV[2])))] = True  
-NewMask[(numpy.int64(numpy.floor(TV[0])),  numpy.int64(numpy.ceil(TV[1])), numpy.int64(numpy.floor(TV[2])))] = True 
-NewMask[(numpy.int64( numpy.ceil(TV[0])),  numpy.int64(numpy.ceil(TV[1])), numpy.int64(numpy.floor(TV[2])))] = True 
-NewMask[(numpy.int64(numpy.floor(TV[0])), numpy.int64(numpy.floor(TV[1])),  numpy.int64(numpy.ceil(TV[2])))] = True 
-NewMask[(numpy.int64( numpy.ceil(TV[0])), numpy.int64(numpy.floor(TV[1])),  numpy.int64(numpy.ceil(TV[2])))] = True 
-NewMask[(numpy.int64(numpy.floor(TV[0])),  numpy.int64(numpy.ceil(TV[1])),  numpy.int64(numpy.ceil(TV[2])))] = True 
-NewMask[(numpy.int64( numpy.ceil(TV[0])),  numpy.int64(numpy.ceil(TV[1])),  numpy.int64(numpy.ceil(TV[2])))] = True 
+NewMask[(numpy.int64(numpy.floor(TV[0])), numpy.int64(numpy.floor(TV[1])), numpy.int64(numpy.floor(TV[2])))] = True
+NewMask[(numpy.int64( numpy.ceil(TV[0])), numpy.int64(numpy.floor(TV[1])), numpy.int64(numpy.floor(TV[2])))] = True
+NewMask[(numpy.int64(numpy.floor(TV[0])),  numpy.int64(numpy.ceil(TV[1])), numpy.int64(numpy.floor(TV[2])))] = True
+NewMask[(numpy.int64( numpy.ceil(TV[0])),  numpy.int64(numpy.ceil(TV[1])), numpy.int64(numpy.floor(TV[2])))] = True
+NewMask[(numpy.int64(numpy.floor(TV[0])), numpy.int64(numpy.floor(TV[1])),  numpy.int64(numpy.ceil(TV[2])))] = True
+NewMask[(numpy.int64( numpy.ceil(TV[0])), numpy.int64(numpy.floor(TV[1])),  numpy.int64(numpy.ceil(TV[2])))] = True
+NewMask[(numpy.int64(numpy.floor(TV[0])),  numpy.int64(numpy.ceil(TV[1])),  numpy.int64(numpy.ceil(TV[2])))] = True
+NewMask[(numpy.int64( numpy.ceil(TV[0])),  numpy.int64(numpy.ceil(TV[1])),  numpy.int64(numpy.ceil(TV[2])))] = True
 
 # dilate
-NewMask = scipy.ndimage.morphology.binary_dilation(NewMask)
+NewMask = scipy.ndimage.binary_dilation(NewMask)
 
 WMGM = numpy.in1d(NewIMG, numpy.array([2, 3, 41, 42]))
 WMGM = numpy.reshape(WMGM, NewIMG.shape)
@@ -82,7 +82,7 @@ WMGM = numpy.reshape(WMGM, NewIMG.shape)
 NewIMG[numpy.logical_and(NewMask, numpy.logical_not(WMGM))] = ThalamusLabel
 
 CCSEGIMG = numpy.reshape(numpy.in1d(NewIMG, numpy.array([250, 251, 252, 253, 254, 255, 10])), NewIMG.shape)
-CCSEGIMG = scipy.ndimage.morphology.binary_dilation(CCSEGIMG, iterations = 1)
+CCSEGIMG = scipy.ndimage.binary_dilation(CCSEGIMG, iterations = 1)
 NewIMG[CCSEGIMG] = 255
 
 #replace brainstem with thalamus
@@ -95,7 +95,7 @@ NewIMG[NewIMG == 16] = ThalamusLabel
 #NewIMG[NewIMG == 17] = ThalamusLabel
 #NewIMG[NewIMG == 53] = ThalamusLabel
 
-NewMGZ = nibabel.MGHImage(NewIMG, ASEGMGZ.get_affine())
+NewMGZ = nibabel.MGHImage(NewIMG, ASEGMGZ.affine)
 nibabel.save(NewMGZ, sys.argv[3])
 #numpy.set_printoptions(precision=4, formatter={'float': '{: 0.3f}'.format})
 #try:

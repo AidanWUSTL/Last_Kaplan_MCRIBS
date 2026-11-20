@@ -4,7 +4,6 @@ import numpy
 import sys
 import os
 import nibabel
-import scipy.ndimage.morphology
 
 if len(sys.argv) < 5:
     print("Incorrect number of arguments")
@@ -37,9 +36,10 @@ ASEGNII = nibabel.load(ASEGFileName)
 RibbonNII = nibabel.load(RibbonFileName)
 DrawEMNII = nibabel.load(DrawEMFileName)
 
-ASEGIMG = ASEGNII.get_data()
-RibbonIMG = RibbonNII.get_data()
-DrawEMIMG = DrawEMNII.get_data()
+ASEGIMG = numpy.int32(numpy.squeeze(ASEGNII.get_fdata()))
+RibbonIMG = numpy.int32(numpy.squeeze(RibbonNII.get_fdata()))
+DrawEMIMG = numpy.int32(numpy.squeeze(DrawEMNII.get_fdata()))
+
 
 NewASEGIMG = numpy.array(ASEGIMG)
 

@@ -1,0 +1,167 @@
+#!/bin/bash
+
+i=$1
+
+P=`pwd`
+
+if [ ! -f "$TISSUESEGDIR/$SUBJID/P${i}_dkt_with_skull_label_to_$SUBJID.nii.gz" ]
+then
+
+	if [ -f "T2NeckCroppedIsotropic/${SUBJID}_manual_latvent.nii.gz" ]
+	then
+		VENTIMAGE=$P/T2NeckCroppedIsotropic/${SUBJID}_manual_latvent.nii.gz
+	else
+		VENTIMAGE=$P/${OUTPUTPREFIX}_brightmask_kmeans_class3.nii.gz
+	fi
+
+	T=`mktemp -d`
+	cd $T
+
+	# use image -> template -> training as initialiser
+	# fslcpgeom ${P}/${OUTPUTPREFIX}_reg_mask.nii.gz ${P}/${OUTPUTPREFIX}_outpropsdilated.nii.gz
+	# fslcpgeom ${P}/${OUTPUTPREFIX}_reg_mask.nii.gz ${P}/${OUTPUTPREFIX}_brightmask_kmeans_class3.nii.gz
+	# fslcpgeom ${P}/${OUTPUTPREFIX}_reg_mask.nii.gz $P/${OUTPUTPREFIX}_t2w_restore_brain.nii.gz
+	# fslcpgeom ${P}/${OUTPUTPREFIX}_reg_mask.nii.gz ${P}/${OUTPUTPREFIX}_segmentation_cc.nii.gz
+
+	#antsRegistration -v -d 3 -u 1 -w [ 0.025,0.975 ] --verbose 1 --float 1 --collapse-output-transforms 1 \
+	# antsRegistration -v -d 3 -u 1 -w [ 0.025,0.975 ] --verbose 1 --float 1 --collapse-output-transforms 1 --write-interval-volumes 10 \
+	# 	--initial-moving-transform [$P/${OUTPUTPREFIX}_alberts_to_native_skullstrip_reg0GenericAffine.mat,0] \
+	# 	--initial-moving-transform [$TEMPLATEDIR/ALBERTsTemplate40ToTemplate0GenericAffine.mat,1] \
+	# 	--initial-moving-transform [$TEMPLATEDIR/FinalP${i}0GenericAffine.mat,0] \
+	# 	--transform SyN[0.55,1.5,0] \
+	# 	--metric MI[ $P/${OUTPUTPREFIX}_t2w_restore_brain.nii.gz,$TEMPLATEDIR/P${i}_t2_brain.nii.gz,0.01,64 ] \
+	# 	--metric Demons[ $VENTIMAGE,$TEMPLATEDIR/P${i}_dkt_latvent.nii.gz,1 ] \
+	# 	--convergence [ 100x40x10,1e-6,80 ] --shrink-factors 4x2x1 --smoothing-sigmas 2x1x0vox --masks ${P}/${OUTPUTPREFIX}_reg_mask.nii.gz \
+	# 	--transform SyN[0.55,1.5,0] \
+	# 	--metric MI[ $P/${OUTPUTPREFIX}_t2w_restore_brain.nii.gz,$TEMPLATEDIR/P${i}_t2_brain.nii.gz,0.01,64 ] \
+	# 	--metric Demons[ $VENTIMAGE,$TEMPLATEDIR/P${i}_dkt_latvent.nii.gz,0.01 ] \
+	# 	--metric Demons[ ${P}/${OUTPUTPREFIX}_segmentation_gm.nii.gz,$TEMPLATEDIR/P${i}_dkt_gm.nii.gz,1 ] \
+	# 	--convergence [ 100x40x10,1e-6,80 ] --shrink-factors 4x2x1 --smoothing-sigmas 2x1x0vox --masks ${P}/${OUTPUTPREFIX}_reg_mask.nii.gz \
+	# 	--transform SyN[0.55,1.5,0] \
+	# 	--metric MI[ $P/${OUTPUTPREFIX}_t2w_restore_brain.nii.gz,$TEMPLATEDIR/P${i}_t2_brain.nii.gz,2,64 ] \
+	# 	--metric Demons[ ${P}/${OUTPUTPREFIX}_segmentation_gm.nii.gz,$TEMPLATEDIR/P${i}_dkt_gm.nii.gz,0.5 ] \
+	# 	--metric Demons[ ${P}/${OUTPUTPREFIX}_segmentation_cc.nii.gz,$TEMPLATEDIR/P${i}_dkt_cc.nii.gz,0.5 ] \
+	# 	--metric Demons[ $VENTIMAGE,$TEMPLATEDIR/P${i}_dkt_latvent.nii.gz,0.2 ] \
+	# 	--convergence [ 70x20,1e-6,80 ] --shrink-factors 2x1 --smoothing-sigmas 0x0vox --masks ${P}/${OUTPUTPREFIX}_reg_mask.nii.gz \
+	# 	--output ${P}/${OUTPUTPREFIX}_to_P${i}_reg
+    DOINTERVALVOLUMES=NO
+
+    if [ "$DOINTERVALVOLUMES" == "YES" ]
+    then
+        INTERVALSWITCH="--write-interval-volumes 10"
+    else
+        INTERVALSWITCH=
+    fi
+
+	# three stage mask alignment
+
+	antsRegistration -v -d 3 -u 1 -w [ 0.025,0.975 ] --verbose 1 --float 1 --collapse-output-transforms 1 $INTERVALSWITCH \
+		--initial-moving-transform [$P/${OUTPUTPREFIX}_alberts_to_native_skullstrip_reg0GenericAffine.mat,0] \
+		--initial-moving-transform [$TEMPLATEDIR/ALBERTsTemplate40ToTemplate0GenericAffine.mat,1] \
+		--initial-moving-transform [$TEMPLATEDIR/FinalP${i}0GenericAffine.mat,0] \
+	 	--transform SyN[0.55,1.5,0] \
+	 	--metric MI[ $P/${OUTPUTPREFIX}_t2w_restore_brain.nii.gz,$TEMPLATEDIR/P${i}_t2_brain.nii.gz,0.01,64 ] \
+	 	--metric Demons[ $VENTIMAGE,$TEMPLATEDIR/P${i}_dkt_latvent.nii.gz,1 ] \
+	 	--convergence [ 100x40x10,1e-6,80 ] --shrink-factors 4x2x1 --smoothing-sigmas 2x1x0vox --masks ${P}/${OUTPUTPREFIX}_reg_mask.nii.gz \
+	 	--transform SyN[0.55,1.5,0] \
+	 	--metric MI[ $P/${OUTPUTPREFIX}_t2w_restore_brain.nii.gz,$TEMPLATEDIR/P${i}_t2_brain.nii.gz,0.01,64 ] \
+	 	--metric Demons[ $VENTIMAGE,$TEMPLATEDIR/P${i}_dkt_latvent.nii.gz,0.01 ] \
+	 	--metric Demons[ ${P}/${OUTPUTPREFIX}_segmentation_gm.nii.gz,$TEMPLATEDIR/P${i}_dkt_gm.nii.gz,1 ] \
+	 	--convergence [ 100x40x10,1e-6,80 ] --shrink-factors 4x2x1 --smoothing-sigmas 2x1x0vox --masks ${P}/${OUTPUTPREFIX}_reg_mask.nii.gz \
+		--transform SyN[0.55,1.5,0] \
+		--metric MI[ $P/${OUTPUTPREFIX}_t2w_restore_brain.nii.gz,$TEMPLATEDIR/P${i}_t2_brain.nii.gz,0.01,64 ] \
+		--metric Demons[ $VENTIMAGE,$TEMPLATEDIR/P${i}_dkt_latvent.nii.gz,1 ] \
+		--metric Demons[ ${P}/${OUTPUTPREFIX}_segmentation_gm.nii.gz,$TEMPLATEDIR/P${i}_dkt_gm.nii.gz,0.1 ] \
+		--metric Demons[ ${P}/${OUTPUTPREFIX}_segmentation_cc.nii.gz,$TEMPLATEDIR/P${i}_dkt_cc.nii.gz,1 ] \
+		--metric Demons[ ${P}/${OUTPUTPREFIX}_septum_lh.nii.gz,$TEMPLATEDIR/P${i}_dkt_septum_lh.nii.gz,1 ] \
+		--metric Demons[ ${P}/${OUTPUTPREFIX}_septum_rh.nii.gz,$TEMPLATEDIR/P${i}_dkt_septum_rh.nii.gz,1 ] \
+		--convergence [ 100x40x10,1e-6,80 ] --shrink-factors 4x2x1 --smoothing-sigmas 2x1x0vox --masks ${P}/${OUTPUTPREFIX}_reg_mask.nii.gz \
+		--transform SyN[0.55,1.5,0] \
+		--metric MI[ $P/${OUTPUTPREFIX}_t2w_restore_brain.nii.gz,$TEMPLATEDIR/P${i}_t2_brain.nii.gz,2,64 ] \
+		--metric Demons[ ${P}/${OUTPUTPREFIX}_segmentation_gm.nii.gz,$TEMPLATEDIR/P${i}_dkt_gm.nii.gz,0.5 ] \
+		--metric Demons[ ${P}/${OUTPUTPREFIX}_segmentation_cc.nii.gz,$TEMPLATEDIR/P${i}_dkt_cc.nii.gz,0.5 ] \
+		--metric Demons[ ${P}/${OUTPUTPREFIX}_septum_lh.nii.gz,$TEMPLATEDIR/P${i}_dkt_septum_lh.nii.gz,0.5 ] \
+		--metric Demons[ ${P}/${OUTPUTPREFIX}_septum_rh.nii.gz,$TEMPLATEDIR/P${i}_dkt_septum_rh.nii.gz,0.5 ] \
+		--metric Demons[ $VENTIMAGE,$TEMPLATEDIR/P${i}_dkt_latvent.nii.gz,0.2 ] \
+		--convergence [ 70x20,1e-6,80 ] --shrink-factors 2x1 --smoothing-sigmas 0x0vox --masks ${P}/${OUTPUTPREFIX}_reg_mask.nii.gz \
+		--output ${P}/$TISSUESEGDIR/$SUBJID/P${i}_to_${SUBJID}_reg
+
+	# two-stage all masks at once
+	# antsRegistration -v -d 3 -u 1 -w [ 0.025,0.975 ] --verbose 1 --float 1 --collapse-output-transforms 1 $INTERVALSWITCH \
+	# 	--initial-moving-transform [$P/${OUTPUTPREFIX}_alberts_to_native_skullstrip_reg0GenericAffine.mat,0] \
+	# 	--initial-moving-transform [$TEMPLATEDIR/ALBERTsTemplate40ToTemplate0GenericAffine.mat,1] \
+	# 	--initial-moving-transform [$TEMPLATEDIR/FinalP${i}0GenericAffine.mat,0] \
+	# 	--transform SyN[0.55,1.5,0] \
+	# 	--metric MI[ $P/${OUTPUTPREFIX}_t2w_restore_brain.nii.gz,$TEMPLATEDIR/P${i}_t2_brain.nii.gz,0.01,64 ] \
+	# 	--metric Demons[ $VENTIMAGE,$TEMPLATEDIR/P${i}_dkt_latvent.nii.gz,1 ] \
+	# 	--metric Demons[ ${P}/${OUTPUTPREFIX}_segmentation_gm.nii.gz,$TEMPLATEDIR/P${i}_dkt_gm.nii.gz,1 ] \
+	# 	--metric Demons[ ${P}/${OUTPUTPREFIX}_septum_lh.nii.gz,$TEMPLATEDIR/P${i}_dkt_septum_lh.nii.gz,1 ] \
+	# 	--metric Demons[ ${P}/${OUTPUTPREFIX}_septum_rh.nii.gz,$TEMPLATEDIR/P${i}_dkt_septum_rh.nii.gz,1 ] \
+	# 	--convergence [ 100x40x10,1e-6,80 ] --shrink-factors 4x2x1 --smoothing-sigmas 2x1x0vox --masks ${P}/${OUTPUTPREFIX}_reg_mask.nii.gz \
+	# 	--transform SyN[0.55,1.5,0] \
+	# 	--metric MI[ $P/${OUTPUTPREFIX}_t2w_restore_brain.nii.gz,$TEMPLATEDIR/P${i}_t2_brain.nii.gz,2,64 ] \
+	# 	--metric Demons[ ${P}/${OUTPUTPREFIX}_segmentation_gm.nii.gz,$TEMPLATEDIR/P${i}_dkt_gm.nii.gz,0.5 ] \
+	# 	--metric Demons[ ${P}/${OUTPUTPREFIX}_segmentation_cc.nii.gz,$TEMPLATEDIR/P${i}_dkt_cc.nii.gz,0.5 ] \
+	# 	--metric Demons[ ${P}/${OUTPUTPREFIX}_septum_lh.nii.gz,$TEMPLATEDIR/P${i}_dkt_septum_lh.nii.gz,0.5 ] \
+	# 	--metric Demons[ ${P}/${OUTPUTPREFIX}_septum_rh.nii.gz,$TEMPLATEDIR/P${i}_dkt_septum_rh.nii.gz,0.5 ] \
+	# 	--metric Demons[ $VENTIMAGE,$TEMPLATEDIR/P${i}_dkt_latvent.nii.gz,0.2 ] \
+	# 	--convergence [ 70x20,1e-6,80 ] --shrink-factors 2x1 --smoothing-sigmas 0x0vox --masks ${P}/${OUTPUTPREFIX}_reg_mask.nii.gz \
+	# 	--output ${P}/$TISSUESEGDIR/$SUBJID/P${i}_to_${SUBJID}_reg
+
+#--metric Demons[ ${P}/${OUTPUTPREFIX}_brightmask_kmeans_class3.nii.gz,$TEMPLATEDIR/P${i}_vent_and_centre_bright.nii.gz,0.25 ] \
+		# this caused massive problems at the brainstem and cerebellum
+		# --transform SyN[0.55,1.5,0] \
+		# --metric Demons[ ${P}/${OUTPUTPREFIX}_brightmask_kmeans_class3.nii.gz,$TEMPLATEDIR/P${i}_vent_and_centre_bright.nii.gz,1 ] \
+		# --convergence [ 100x40x0,1e-6,80 ] --shrink-factors 4x2x1 --smoothing-sigmas 2x1x0vox --masks ${P}/${OUTPUTPREFIX}_reg_mask.nii.gz \
+
+		#--metric Demons[ ${P}/${OUTPUTPREFIX}_outpropsdilated.nii.gz,$TEMPLATEDIR/P${i}_dkt_gm.nii.gz,1 ] \
+		
+		#--metric Demons[ ${P}/${OUTPUTPREFIX}_brightmask_kmeans_class3.nii.gz,$TEMPLATEDIR/P${i}_vent_and_centre_bright.nii.gz,0.1 ] \
+		#--metric Demons[ ${P}/${OUTPUTPREFIX}_segmentation_cc.nii.gz,$TEMPLATEDIR/P${i}_dkt_cc.nii.gz,1 ] \
+		# --transform SyN[0.55,1.5,0] \
+		# --metric Demons[ ${P}/${OUTPUTPREFIX}_outpropsdilated.nii.gz,$TEMPLATEDIR/P${i}_dkt_gm.nii.gz,1 ] \
+		# --metric MI[ $P/${OUTPUTPREFIX}_t2w_restore_brain.nii.gz,$TEMPLATEDIR/P${i}_t2_brain.nii.gz,0.05,64 ] \
+		# --metric Demons[ ${P}/${OUTPUTPREFIX}_brightmask_kmeans_class3.nii.gz,$TEMPLATEDIR/P${i}_vent_and_centre_bright.nii.gz,0.1 ] \
+		# --metric Demons[ ${P}/${OUTPUTPREFIX}_segmentation_cc.nii.gz,$TEMPLATEDIR/P${i}_dkt_cc.nii.gz,1 ] \
+		# --convergence [ 10,1e-6,80 ] --shrink-factors 1 --smoothing-sigmas 0vox --masks ${P}/${OUTPUTPREFIX}_reg_mask.nii.gz \
+		
+		#--convergence [ 100x100x40x10,1e-6,80 ] --shrink-factors 6x4x2x1 --smoothing-sigmas 3x2x1x0vox --masks ${P}/${OUTPUTPREFIX}_reg_mask.nii.gz \
+		#--initial-moving-transform $P/${OUTPUTPREFIX}_alberts_to_native_skullstrip_reg1Warp.nii.gz \
+		#--initial-moving-transform [$P/${OUTPUTPREFIX}_alberts_to_native_skullstrip_reg0GenericAffine.mat,0] \
+		#--initial-moving-transform [$TEMPLATEDIR/ALBERTsTemplate40ToTemplate0GenericAffine.mat,1] \
+		#--initial-moving-transform $TEMPLATEDIR/ALBERTsTemplate40ToTemplate1InverseWarp.nii.gz \
+		#--initial-moving-transform $TEMPLATEDIR/FinalP${i}1Warp.nii.gz \
+		#--initial-moving-transform [$TEMPLATEDIR/FinalP${i}0GenericAffine.mat,0] \
+
+	
+    if [ "$DOINTERVALVOLUMES" == "YES" ]
+    then
+	    fslmerge -a ${P}/TissueSegMCRIBS/$SUBJID/P${i}_to_${SUBJID}_all_iters Stage*
+        fslmaths ${P}/TissueSegMCRIBS/$SUBJID/P${i}_to_${SUBJID}_all_iters ${P}/TissueSegMCRIBS/$SUBJID/P${i}_to_${SUBJID}_all_iters -odt short
+    fi
+	cd $P
+	#rm -f ${OUTPUTPREFIX}_to_P${i}_reg1InverseWarp.nii.gz
+	rm -fr $T
+	
+	antsApplyTransforms -v -d 3 --reference-image ${OUTPUTPREFIX}_t2w_restore.nii.gz --input $TEMPLATEDIR/P${i}_t2.nii.gz \
+		--transform $TISSUESEGDIR/$SUBJID/P${i}_to_${SUBJID}_reg1Warp.nii.gz \
+		--transform $TISSUESEGDIR/$SUBJID/P${i}_to_${SUBJID}_reg0GenericAffine.mat \
+		--interpolation Linear \
+		--output-data-type short \
+		--output $TISSUESEGDIR/$SUBJID/P${i}_t2_to_$SUBJID.nii.gz
+
+	# antsApplyTransforms -v -d 3 --reference-image ${OUTPUTPREFIX}_t2w_restore.nii.gz --input $TEMPLATEDIR/P${i}_t2.nii.gz \
+	# 	--transform ${OUTPUTPREFIX}_to_P${i}_reg0GenericAffine.mat \
+	# 	--interpolation Linear \
+	# 	--output-data-type float \
+	# 	--output $TISSUESEGDIR/$SUBJID/P${i}_t2_affineinit_to_$SUBJID.nii.gz
+
+	antsApplyTransforms -v -d 3 --reference-image ${OUTPUTPREFIX}_t2w_restore.nii.gz --input $TEMPLATEDIR/P${i}_dkt_with_skull_label.nii.gz \
+		--transform $TISSUESEGDIR/$SUBJID/P${i}_to_${SUBJID}_reg1Warp.nii.gz \
+		--transform $TISSUESEGDIR/$SUBJID/P${i}_to_${SUBJID}_reg0GenericAffine.mat \
+		--interpolation GenericLabel \
+		--output-data-type short \
+		--output $TISSUESEGDIR/$SUBJID/P${i}_dkt_with_skull_label_to_$SUBJID.nii.gz
+	rm -f $TISSUESEGDIR/$SUBJID/P${i}_to_${SUBJID}_reg1InverseWarp.nii.gz
+	#rm -f ${OUTPUTPREFIX}_to_P${i}_reg0GenericAffine.mat ${OUTPUTPREFIX}_to_P${i}_reg1Warp.nii.gz
+fi
