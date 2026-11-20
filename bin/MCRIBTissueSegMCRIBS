@@ -414,11 +414,11 @@ then
 	rm -f ${OUTPUTPREFIX}_brain_mask_mesh.vtp 
 	mri_convert ${OUTPUTPREFIX}_brain_mask_hull.nii.gz -rl ${OUTPUTPREFIX}_brain_mask.nii.gz --out_data_type uchar ${OUTPUTPREFIX}_brain_mask_hull.nii.gz
 	#fslmaths ${OUTPUTPREFIX}_brain_mask_hull.nii.gz -eroF ${OUTPUTPREFIX}_brain_mask_hull.nii.gz
-	mri_binarize --i ${OUTPUTPREFIX}_brain_mask_hull.nii.gz --o ${OUTPUTPREFIX}_brain_mask_hull.nii.gz --min 0.9 --erode 1 --noverbose
+	mri_binarize --i ${OUTPUTPREFIX}_brain_mask_hull.nii.gz --o ${OUTPUTPREFIX}_brain_mask_hull.nii.gz --min 0.9 --erode 1 
 	fslmaths ${OUTPUTPREFIX}_brain_mask_hull.nii.gz -sub ${OUTPUTPREFIX}_brain_mask.nii.gz ${OUTPUTPREFIX}_brain_mask_hull_added.nii.gz
 	fslmaths ${OUTPUTPREFIX}_brain_mask_hull_added.nii.gz ${OUTPUTPREFIX}_brain_mask_hull_added_before_fissure.nii.gz -odt char
 	# mask the fissure bit
-	mri_binarize --i ${OUTPUTPREFIX}_dkt_majority_affine_reg.nii.gz --o ${OUTPUTPREFIX}_dkt_majority_affine_reg_fissure.nii.gz --match 1005 2005 1013 2013 --dilate 5 --noverbose
+	mri_binarize --i ${OUTPUTPREFIX}_dkt_majority_affine_reg.nii.gz --o ${OUTPUTPREFIX}_dkt_majority_affine_reg_fissure.nii.gz --match 1005 2005 1013 2013 --dilate 5 
 
 	fslmaths ${OUTPUTPREFIX}_brain_mask_hull_added.nii.gz -mas ${OUTPUTPREFIX}_dkt_majority_affine_reg_fissure.nii.gz -bin ${OUTPUTPREFIX}_brain_mask_hull_added.nii.gz -odt char
 	
@@ -538,7 +538,7 @@ then
 		--output ${OUTPUTPREFIX}_template-40-septum_skullstrip_reg_rh.nii.gz
 fi
 
-MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_cc.nii.gz --match 192 --noverbose
+MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_cc.nii.gz --match 192 
 MakeKMeans34Class $SUBJID ${SUBJID}_majority_dkt_with_latvent_rings_skullstrip_reg.nii.gz ${SUBJID}_kmeans3_skullstrip_reg.nii.gz
 # label the septum pellucidum
 MakeSeptumMasks $SUBJID
@@ -592,7 +592,7 @@ then
 ##       rm -f Stage*.nii.gz
 #        #if [ ! -f "${OUTPUTPREFIX}_skullstrip_reg_largeventricles2Warp.nii.gz" ]
 #
-	mri_binarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_subcort_gm.nii.gz --match 9 11 12 13 28 48 50 51 52 60 --noverbose
+	mri_binarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_subcort_gm.nii.gz --match 9 11 12 13 28 48 50 51 52 60 
 fi
 
 if [ "$LARGEVENTRICLES" == "YES" ]
@@ -642,7 +642,7 @@ then
     exit
 fi
 
-MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_cc.nii.gz --match 192 --noverbose
+MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg_cc.nii.gz --match 192 
 
 if [ "YES" == "YES" ]
 then
@@ -677,7 +677,7 @@ then
 	${OUTPUTPREFIX}_t2w_restore_brain_dn_atropos5_segmentation_border.nii.gz
 fi
 
-MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_segmentation_cc.nii.gz --match 192 --noverbose
+MRIBinarize --i ${OUTPUTPREFIX}_majority_dkt_skullstrip_reg.nii.gz --o ${OUTPUTPREFIX}_segmentation_cc.nii.gz --match 192 
 
 if [ "$NUMTHREADS" == "0" ]
 then
@@ -760,8 +760,8 @@ fslmaths ${OUTPUTPREFIX}_labelfusion_dkt_orig.nii.gz ${OUTPUTPREFIX}_labelfusion
 
 rm -f ${OUTPUTPREFIX}_labelfusion_radius_image.nii.gz
 
-mri_binarize --i ${OUTPUTPREFIX}_labelfusion_dkt_orig.nii.gz --o ${OUTPUTPREFIX}_labelfusion_dkt_orig_lh_hippo_closed.nii.gz --match 17 --dilate 2 --erode 2 --binval 17 --noverbose
-mri_binarize --i ${OUTPUTPREFIX}_labelfusion_dkt_orig.nii.gz --o ${OUTPUTPREFIX}_labelfusion_dkt_orig_rh_hippo_closed.nii.gz --match 53 --dilate 2 --erode 2 --binval 53 --noverbose
+mri_binarize --i ${OUTPUTPREFIX}_labelfusion_dkt_orig.nii.gz --o ${OUTPUTPREFIX}_labelfusion_dkt_orig_lh_hippo_closed.nii.gz --match 17 --dilate 2 --erode 2 --binval 17 
+mri_binarize --i ${OUTPUTPREFIX}_labelfusion_dkt_orig.nii.gz --o ${OUTPUTPREFIX}_labelfusion_dkt_orig_rh_hippo_closed.nii.gz --match 53 --dilate 2 --erode 2 --binval 53 
 
 mri_mask -transfer 17 ${OUTPUTPREFIX}_labelfusion_dkt_orig.nii.gz ${OUTPUTPREFIX}_labelfusion_dkt_orig_lh_hippo_closed.nii.gz ${OUTPUTPREFIX}_labelfusion_dkt.nii.gz
 mri_mask -transfer 53 ${OUTPUTPREFIX}_labelfusion_dkt.nii.gz ${OUTPUTPREFIX}_labelfusion_dkt_orig_rh_hippo_closed.nii.gz ${OUTPUTPREFIX}_labelfusion_dkt.nii.gz

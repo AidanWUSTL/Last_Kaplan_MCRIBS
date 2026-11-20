@@ -50,7 +50,7 @@ else
         --output-data-type uchar
 	
     
-    mri_binarize --i $T2NECKCROPPEDISO/${1}_brainmask.nii.gz --o $T2NECKCROPPEDISO/${1}_brainmask.nii.gz --match 1 --dilate 4 --noverbose
+    mri_binarize --i $T2NECKCROPPEDISO/${1}_brainmask.nii.gz --o $T2NECKCROPPEDISO/${1}_brainmask.nii.gz --match 1 --dilate 4 
 	ZBRAIN=`fslstats $T2NECKCROPPEDISO/${1}_brainmask -w`
 	fslroi $T2NECKCROPPEDISO/${1}_maxlabel_cropped $T2NECKCROPPEDISO/${1}_crop $ZBRAIN
 	imrm $T2NECKCROPPEDISO/${1}_brainmask
